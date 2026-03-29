@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Chatbot</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 20px 24px;
+    }
+
+    .header h1 { font-size: 22px; font-weight: 600; }
+    .header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+
+    .controls {
+      padding: 12px 16px;
+      border-bottom: 1px solid #eee;
+      background: #fafafa;
+    }
+
+    .controls label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+      display: block;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    #model-select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+      color: #333;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #model-select:focus { border-color: #667eea; }
+
+    #chat-box {
+      height: 420px;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: #f8f9fb;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+
+    .message.user {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.ai {
+      background: white;
+      color: #333;
+      align-self: flex-start;
+      border: 1px solid #e8e8e8;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .message.ai.loading {
+      color: #999;
+      font-style: italic;
+    }
+
+    .message .sender {
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      opacity: 0.7;
+    }
+
+    .input-area {
+      padding: 16px;
+      border-top: 1px solid #eee;
+      background: white;
+      display: flex;
+      gap: 10px;
+    }
+
+    #user-input {
+      flex: 1;
+      padding: 11px 14px;
+      border: 1px solid #ddd;
+      border-radius: 24px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #user-input:focus { border-color: #667eea; }
+
+    #send-btn {
+      padding: 11px 22px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      white-space: nowrap;
+    }
+    #send-btn:hover { opacity: 0.9; }
+    #send-btn:active { transform: scale(0.97); }
+    #send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🤖 AI Chatbot</h1>
+      <p>Powered by OpenRouter — Free Tier Models</p>
+    </div>
+
+    <div class="controls">
+      <label for="model-select">Model</label>
+      <select id="model-select">
+        <!-- Google -->
+        <optgroup label="Google">
+          <option value="google/gemma-3-27b-it:free">Gemma 3 27B ⭐ Recommended</option>
+          <option value="google/gemma-3-12b-it:free">Gemma 3 12B</option>
+          <option value="google/gemma-3-4b-it:free">Gemma 3 4B (Fast)</option>
+          <option value="google/gemma-2-9b-it:free">Gemma 2 9B</option>
+        </optgroup>
+        <!-- Meta -->
+        <optgroup label="Meta">
+          <option value="meta-llama/llama-4-scout:free">Llama 4 Scout 🆕</option>
+          <option value="meta-llama/llama-4-maverick:free">Llama 4 Maverick 🆕</option>
+          <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B</option>
+          <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B</option>
+        </optgroup>
+        <!-- DeepSeek -->
+        <optgroup label="DeepSeek">
+          <option value="deepseek/deepseek-chat-v3-0324:free">DeepSeek V3 (Mar 2025) 🆕</option>
+          <option value="deepseek/deepseek-r1:free">DeepSeek R1 (Reasoning)</option>
+          <option value="deepseek/deepseek-r1-zero:free">DeepSeek R1 Zero</option>
+        </optgroup>
+        <!-- Mistral -->
+        <optgroup label="Mistral">
+          <option value="mistralai/mistral-small-3.1-24b-instruct:free">Mistral Small 3.1 24B 🆕</option>
+          <option value="mistralai/mistral-7b-instruct:free">Mistral 7B</option>
+        </optgroup>
+        <!-- Qwen -->
+        <optgroup label="Qwen / Alibaba">
+          <option value="qwen/qwen2.5-vl-72b-instruct:free">Qwen 2.5 VL 72B</option>
+          <option value="qwen/qwen2.5-72b-instruct:free">Qwen 2.5 72B</option>
+          <option value="qwen/qwen-2-7b-instruct:free">Qwen 2 7B</option>
+        </optgroup>
+        <!-- Microsoft -->
+        <optgroup label="Microsoft">
+          <option value="microsoft/phi-4:free">Phi-4 🆕</option>
+          <option value="microsoft/phi-3-mini-128k-instruct:free">Phi-3 Mini</option>
+        </optgroup>
+        <!-- Other -->
+        <optgroup label="Other">
+          <option value="nvidia/llama-3.1-nemotron-70b-instruct:free">NVIDIA Nemotron 70B</option>
+          <option value="openchat/openchat-7b:free">OpenChat 7B</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div id="chat-box">
+      <!-- Messages appear here -->
+    </div>
+
+    <div class="input-area">
+      <input type="text" id="user-input" placeholder="Type your message and press Enter…" autocomplete="off">
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
